@@ -11,7 +11,7 @@ type Song = {
   audio_url?: string;
 };
 
-const API_URL = "http://localhost:8000/api";
+const API_URL = "https://tunebox-apk-p2st.vercel.app/api";
 
 export default function Home() {
   const [songs, setSongs] = useState<Song[]>([]);
