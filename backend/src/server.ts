@@ -3,6 +3,7 @@ import "dotenv/config";
 
 import app from "./app.ts";
 import connection from "./db/index.ts";
+import cors from "cors";
 
 const port = Number(process.env.PORT) || 8000;
 
@@ -19,3 +20,4 @@ async function startServer() {
 }
 
 startServer();
+

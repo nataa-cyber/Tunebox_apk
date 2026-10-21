@@ -1,13 +1,26 @@
-import mysql from 'mysql2/promise';
+import mysql from "mysql2/promise";
 import "dotenv/config";
-// Create the connection to database
+import fs from "fs";
+import path from "path";
+
+const caPath = path.resolve(
+  process.cwd(),
+  process.env.DB_SSL_CA || "./ca.pem"
+);
+
 const pool = mysql.createPool({
-  host: 'localhost',
-  user: 'root',
-  password: "Nataa28!",
-  database: 'music_apk',
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT),
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+
+  ssl: {
+    ca: fs.readFileSync(caPath, "utf8"),
+  },
+
   waitForConnections: true,
-  connectionLimit: 10
+  connectionLimit: 10,
 });
 
-export default pool
+export default pool;
