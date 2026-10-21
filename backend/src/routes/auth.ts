@@ -28,7 +28,7 @@ router.post("/register", async (req: Request, res: Response) => {
     const cleanUsername = username.trim();
     const cleanEmail = email.trim().toLowerCase();
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
   return res.status(400).json({
     message: "Format email tidak valid!",
   });

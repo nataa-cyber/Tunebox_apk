@@ -7,6 +7,9 @@ if (!ca) {
   throw new Error("DB_SSL_CA belum diatur di environment");
 }
 
+console.log("DB HOST:", process.env.DB_HOST);
+console.log("DB PORT:", process.env.DB_PORT);
+
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   port: Number(process.env.DB_PORT || 3306),
