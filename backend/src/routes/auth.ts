@@ -29,10 +29,10 @@ router.post("/register", async (req: Request, res: Response) => {
     const cleanEmail = email.trim().toLowerCase();
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-      return res.status(400).json({
-        message: "Format email tidak valid!",
-      });
-    }
+  return res.status(400).json({
+    message: "Format email tidak valid!",
+  });
+}
 
     if (password.length < 6) {
       return res.status(400).json({

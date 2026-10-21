@@ -12,22 +12,40 @@ import playlistRoutes from "./routes/playlist.ts";
 
 const app = express();
 
-app.use(cors());
+const allowedOrigins = [
+  "https://tunebox-apk.vercel.app",
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Izinkan request tanpa Origin, misalnya dari server atau Postman.
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(
+        new Error(`Origin tidak diizinkan oleh CORS: ${origin}`)
+      );
+    },
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/test-route", (_req, res) => {
-    res.json({ message: "Route berhasil!" });
+  res.json({ message: "Route berhasil!" });
 });
 
-// Cek server
 app.get("/", (_req, res) => {
-    res.json({
-        message: "Backend aplikasi musik berhasil berjalan!"
-    });
+  res.json({
+    message: "Backend aplikasi musik berhasil berjalan!",
+  });
 });
 
-// Hubungkan semua route
 app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/songs", songsRoutes);
