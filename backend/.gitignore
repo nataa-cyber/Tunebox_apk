@@ -10,4 +10,3 @@ build/
 npm-debug.log*
 .DS_Store
 # Aiven CA certificate
-ca.pem
