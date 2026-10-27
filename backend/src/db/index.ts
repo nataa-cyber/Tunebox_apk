@@ -1,28 +1,30 @@
 import mysql from "mysql2/promise";
 import "dotenv/config";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
-const ca = process.env.DB_SSL_CA;
+const host = process.env.DB_HOST?.trim();
+const port = Number(process.env.DB_PORT?.trim());
+const user = process.env.DB_USER?.trim();
+const password = process.env.DB_PASSWORD;
+const database = process.env.DB_NAME?.trim();
 
-if (!ca) {
-  throw new Error("DB_SSL_CA belum diatur di environment");
+if (!host || !port || !user || !password || !database) {
+  throw new Error("Konfigurasi database belum lengkap");
 }
 
-console.log("DB HOST:", process.env.DB_HOST);
-console.log("DB PORT:", process.env.DB_PORT);
+const ca = readFileSync(resolve(process.cwd(), "ca.pem"), "utf8");
 
 const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT || 3306),
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-
-  ssl: {
-    ca: ca.replace(/\\n/g, "\n"),
-  },
-
+  host,
+  port,
+  user,
+  password,
+  database,
+  ssl: { ca },
   waitForConnections: true,
   connectionLimit: 10,
+  connectTimeout: 20000,
 });
 
 export default pool;

@@ -2,6 +2,7 @@
 import { Router, type Request, type Response } from "express";
 import jwt from "jsonwebtoken";
 import pool from "../db/index.ts";
+import bcrypt from "bcrypt";
 
 const router = Router();
 
@@ -71,6 +72,7 @@ router.post("/register", async (req: Request, res: Response) => {
 });
 
 // LOGIN
+
 router.post("/login", async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body ?? {};
@@ -96,7 +98,7 @@ router.post("/login", async (req: Request, res: Response) => {
       [cleanEmail]
     );
 
-    if (rows.length === 0) {
+    if (!rows || rows.length === 0) {
       return res.status(401).json({
         message: "Email atau password salah!",
       });
@@ -104,8 +106,14 @@ router.post("/login", async (req: Request, res: Response) => {
 
     const user = rows[0];
 
-    // Cocokkan password teks biasa dengan isi database.
-    if (password !== user.password) {
+    // Password harus dibandingkan dengan bcrypt jika
+    // register menyimpan password menggunakan bcrypt.
+    const passwordValid = await bcrypt.compare(
+      password,
+      user.password
+    );
+
+    if (!passwordValid) {
       return res.status(401).json({
         message: "Email atau password salah!",
       });
