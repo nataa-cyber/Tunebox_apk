@@ -1,8 +1,8 @@
 
 import { Router, type Request, type Response } from "express";
 import jwt from "jsonwebtoken";
-import pool from "../db/index.ts";
 import bcrypt from "bcrypt";
+import pool from "../db/index.ts";
 
 const router = Router();
 
@@ -29,11 +29,11 @@ router.post("/register", async (req: Request, res: Response) => {
     const cleanUsername = username.trim();
     const cleanEmail = email.trim().toLowerCase();
 
-   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-  return res.status(400).json({
-    message: "Format email tidak valid!",
-  });
-}
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      return res.status(400).json({
+        message: "Format email tidak valid!",
+      });
+    }
 
     if (password.length < 6) {
       return res.status(400).json({
@@ -42,7 +42,7 @@ router.post("/register", async (req: Request, res: Response) => {
     }
 
     const [existing]: any = await pool.execute(
-      "SELECT id FROM users WHERE email = ?",
+      "SELECT id FROM users WHERE email = ? LIMIT 1",
       [cleanEmail]
     );
 
@@ -52,11 +52,12 @@ router.post("/register", async (req: Request, res: Response) => {
       });
     }
 
-    // Simpan password sebagai teks biasa agar terlihat di MySQL.
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     await pool.execute(
       `INSERT INTO users (username, email, password)
        VALUES (?, ?, ?)`,
-      [cleanUsername, cleanEmail, password]
+      [cleanUsername, cleanEmail, hashedPassword]
     );
 
     return res.status(201).json({
@@ -72,7 +73,6 @@ router.post("/register", async (req: Request, res: Response) => {
 });
 
 // LOGIN
-
 router.post("/login", async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body ?? {};
@@ -105,18 +105,29 @@ router.post("/login", async (req: Request, res: Response) => {
     }
 
     const user = rows[0];
+    const storedPassword = String(user.password);
 
-    // Password harus dibandingkan dengan bcrypt jika
-    // register menyimpan password menggunakan bcrypt.
-    const passwordValid = await bcrypt.compare(
-      password,
-      user.password
-    );
+    // Mendukung hash bcrypt dan password lama berbentuk teks biasa.
+    const isBcryptHash = /^\$2[aby]\$\d{2}\$/.test(storedPassword);
+
+    const passwordValid = isBcryptHash
+      ? await bcrypt.compare(password, storedPassword)
+      : password === storedPassword;
 
     if (!passwordValid) {
       return res.status(401).json({
         message: "Email atau password salah!",
       });
+    }
+
+    // Migrasikan password lama ke bcrypt setelah login berhasil.
+    if (!isBcryptHash) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      await pool.execute(
+        "UPDATE users SET password = ? WHERE id = ?",
+        [hashedPassword, user.id]
+      );
     }
 
     const secret = process.env.JWT_SECRET;
