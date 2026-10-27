@@ -1,8 +1,7 @@
 
 import mysql from "mysql2/promise";
 import "dotenv/config";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+
 
 const host = process.env.DB_HOST?.trim();
 const portValue = process.env.DB_PORT?.trim();
@@ -32,8 +31,17 @@ if (!Number.isInteger(port) || port <= 0 || port > 65535) {
   throw new Error("DB_PORT tidak valid");
 }
 
-const caPath = resolve(process.cwd(), "src", "db", "ca.pem");
-const ca = readFileSync(caPath, "utf8");
+const caBase64 = process.env.DB_CA_CERT_BASE64?.trim();
+
+if (!caBase64) {
+  throw new Error("Environment DB_CA_CERT_BASE64 belum diatur");
+}
+
+const ca = Buffer.from(caBase64, "base64").toString("utf8");
+
+if (!ca.includes("BEGIN CERTIFICATE")) {
+  throw new Error("Format sertifikat CA tidak valid");
+}
 
 const pool = mysql.createPool({
   host: host!,
