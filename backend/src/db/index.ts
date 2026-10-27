@@ -32,10 +32,8 @@ if (!Number.isInteger(port) || port <= 0 || port > 65535) {
   throw new Error("DB_PORT tidak valid");
 }
 
-const ca = readFileSync(
-  resolve(process.cwd(), "ca.pem"),
-  "utf8"
-);
+const caPath = resolve(process.cwd(), "src", "db", "ca.pem");
+const ca = readFileSync(caPath, "utf8");
 
 const pool = mysql.createPool({
   host: host!,
