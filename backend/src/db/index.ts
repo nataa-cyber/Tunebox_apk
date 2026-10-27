@@ -9,10 +9,19 @@ const user = process.env.DB_USER?.trim();
 const password = process.env.DB_PASSWORD;
 const database = process.env.DB_NAME?.trim();
 
-if (!host || !port || !user || !password || !database) {
-  throw new Error("Konfigurasi database belum lengkap");
-}
+const missing = [
+  ["DB_HOST", host],
+  ["DB_PORT", port],
+  ["DB_USER", user],
+  ["DB_PASSWORD", password],
+  ["DB_NAME", database],
+]
+  .filter(([, value]) => !value)
+  .map(([name]) => name);
 
+if (missing.length > 0) {
+  throw new Error(`Environment database belum lengkap: ${missing.join(", ")}`);
+}
 const ca = readFileSync(resolve(process.cwd(), "ca.pem"), "utf8");
 
 const pool = mysql.createPool({
