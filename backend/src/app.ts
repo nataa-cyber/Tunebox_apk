@@ -12,23 +12,24 @@ import playlistRoutes from "./routes/playlist.ts";
 
 const app = express();
 
-const allowedOrigins = [
+const allowedOrigins = new Set([
   "http://localhost:3000",
   "https://tunebox-apk.vercel.app",
-];
+]);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Izinkan request tanpa Origin, misalnya dari server atau Postman.
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.has(origin)) {
         return callback(null, true);
       }
 
-      return callback(new Error(`Origin tidak diizinkan oleh CORS: ${origin}`));
+      console.warn("CORS blocked origin:", origin);
+      return callback(null, false);
     },
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    optionsSuccessStatus: 204,
   }),
 );
 
