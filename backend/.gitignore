@@ -1,0 +1,12 @@
+
+node_modules/
+.next/
+dist/
+build/
+.env
+.env.*
+!.env.example
+!.env.local.example
+npm-debug.log*
+.DS_Store
+# Aiven CA certificate
